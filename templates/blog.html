@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block extra_head_content  %}
+{% endblock %}
+
+{% block content %}
+    
+    <h1>My Blogs</h1>
+
+    <ul>
+        {% for blog in blogs %}
+        <li style="list-style-type: none;">
+            <h3>{{blog.title}}</h3>
+            <br>
+            {{blog.body}}
+            <hr/>
+        </li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}
