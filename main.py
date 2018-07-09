@@ -71,11 +71,19 @@ def new_post():
             new_post = Blog(title, body)
             db.session.add(new_post)
             db.session.commit()
-            return render_template('blog.html',title="Add a Blog Entry", blogs=blogs)
+            blog = Blog.query.filter_by(id=new_post.id).first() 
+            return render_template('entry.html', blog=blog)
+           
         else:
             flash('Please enter conent for your blog title and body','error')
 
     return render_template('newpost.html')
+
+@app.route('/entry', methods=['GET'])
+def view_entry():
+    id = request.args.get('blog')
+    blog = Blog.query.filter_by(id=id).first() 
+    return render_template('entry.html', blog=blog)
 
 if __name__ == '__main__':
     app.run()

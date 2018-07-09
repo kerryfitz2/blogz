@@ -13,8 +13,7 @@ class Blog(db.Model):
         #if pub_date is None:
         #    pub_date = datetime.utcnow()
         #self.pub_date = pub_date
-    def __repr__(self):
-        return '<Blog %r>' % self.name
+
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key = True)
@@ -25,5 +24,4 @@ class User(db.Model):
         self.email = email
         self.password =password
     
-    def __repr__(self):
-        return '<User %r>' % self.email
+ 
