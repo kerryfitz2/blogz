@@ -1,7 +1,7 @@
 from flask import request, redirect, render_template, flash, session
 from models import User, Blog
 from app import app, db
-#from datetime import datetime
+from sqlalchemy import desc
 
 @app.before_request
 def require_login():
@@ -55,7 +55,7 @@ def logout():
 def index():
 
     owner = User.query.filter_by(email=session['email']).first()
-    blogs = Blog.query.filter_by(owner=owner).all()
+    blogs = Blog.query.filter_by(owner=owner).order_by(desc(Blog.pub_date)).all()
     return render_template('blog.html',title="My Blogs", 
         blogs=blogs, owner=owner)
 
