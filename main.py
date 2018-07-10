@@ -39,7 +39,7 @@ def register():
             db.session.add(new_user)
             db.session.commit()
             session['email'] = email
-            return redirect('/')
+            return redirect('/blog')
 
         else:
             return '<h1>Duplicate User</h1>'
@@ -54,25 +54,26 @@ def logout():
 @app.route('/blog', methods=['POST', 'GET'])
 def index():
 
-    blogs = Blog.query.all()
+    owner = User.query.filter_by(email=session['email']).first()
+    blogs = Blog.query.filter_by(owner=owner).all()
     return render_template('blog.html',title="My Blogs", 
-        blogs=blogs)
+        blogs=blogs, owner=owner)
 
 
 @app.route('/newpost', methods=['POST', 'GET'])
 def new_post():
 
-    blogs = Blog.query.all()
+    owner = User.query.filter_by(email=session['email']).first()
     if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
         #pub_date = datetime.utcnow()
         if title != "" and body !="":
-            new_post = Blog(title, body)
+            new_post = Blog(title, body, owner)
             db.session.add(new_post)
             db.session.commit()
-            blog = Blog.query.filter_by(id=new_post.id).first() 
-            return render_template('entry.html', blog=blog)
+            blog = Blog.query.filter_by(id=new_post.id, owner=owner).first() 
+            return render_template('entry.html', blog=blog, owner=owner)
            
         else:
             flash('Please enter conent for your blog title and body','error')
@@ -81,9 +82,10 @@ def new_post():
 
 @app.route('/entry', methods=['GET'])
 def view_entry():
+    owner = User.query.filter_by(email=session['email']).first()
     id = request.args.get('blog')
-    blog = Blog.query.filter_by(id=id).first() 
-    return render_template('entry.html', blog=blog)
+    blog = Blog.query.filter_by(owner=owner, id=id).first()
+    return render_template('entry.html', blog=blog, owner=owner)
 
 if __name__ == '__main__':
     app.run()
