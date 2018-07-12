@@ -7,17 +7,17 @@ from sqlalchemy import desc
 def require_login():
     allowed_routes = ['login', 'register']
     print (session)
-    if request.endpoint not in allowed_routes and 'email' not in session:
+    if request.endpoint not in allowed_routes and 'username' not in session:
         return redirect('/login')
 
 @app.route('/login', methods = ['POST', 'GET'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
+        username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(email = email).first()
+        user = User.query.filter_by(username = username).first()
         if user and user.password == password:
-            session['email'] = email
+            session['username'] = username
             flash("Logged in")
             print(session)
             return redirect('/blog')
@@ -29,16 +29,16 @@ def login():
 @app.route('/register', methods = ['POST', 'GET'])
 def register():
     if request.method == 'POST':
-        email = request.form['email']
+        username = request.form['username']
         password = request.form ['password']
         verify = request.form ['verify']
 
-        existing_user = User.query.filter_by(email = email).first()
+        existing_user = User.query.filter_by(username = username).first()
         if not existing_user:
-            new_user = User(email, password)
+            new_user = User(username, password)
             db.session.add(new_user)
             db.session.commit()
-            session['email'] = email
+            session['username'] = username
             return redirect('/blog')
 
         else:
@@ -48,13 +48,13 @@ def register():
 
 @app.route('/logout')
 def logout():
-    del session['email']
+    del session['username']
     return redirect('/login')
 
 @app.route('/blog', methods=['POST', 'GET'])
 def index():
 
-    owner = User.query.filter_by(email=session['email']).first()
+    owner = User.query.filter_by(username=session['username']).first()
     blogs = Blog.query.filter_by(owner=owner).order_by(desc(Blog.pub_date)).all()
     return render_template('blog.html',title="My Blogs", 
         blogs=blogs, owner=owner)
@@ -63,7 +63,7 @@ def index():
 @app.route('/newpost', methods=['POST', 'GET'])
 def new_post():
 
-    owner = User.query.filter_by(email=session['email']).first()
+    owner = User.query.filter_by(username =session['username']).first()
     if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
@@ -82,7 +82,7 @@ def new_post():
 
 @app.route('/entry', methods=['GET'])
 def view_entry():
-    owner = User.query.filter_by(email=session['email']).first()
+    owner = User.query.filter_by(username =session['username']).first()
     id = request.args.get('blog')
     blog = Blog.query.filter_by(owner=owner, id=id).first()
     return render_template('entry.html', blog=blog, owner=owner)
