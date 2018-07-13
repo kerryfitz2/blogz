@@ -5,10 +5,14 @@ from sqlalchemy import desc
 
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'register']
-    print (session)
+    allowed_routes = ['login', 'register', 'blog', 'home']
     if request.endpoint not in allowed_routes and 'username' not in session:
         return redirect('/login')
+
+@app.route('/')
+def home():
+    users = User.query.all()
+    return render_template('home.html', users=users)
 
 @app.route('/login', methods = ['POST', 'GET'])
 def login():
@@ -20,10 +24,13 @@ def login():
             session['username'] = username
             flash("Logged in")
             print(session)
-            return redirect('/blog')
-        else:
-            flash('User password incorrect or user does not exist', 'error')
-            
+            return redirect('/newpost')
+        elif not user:
+            flash('User does not exist', 'error')
+            return redirect('/register')
+        elif user.password != password:
+            flash('User password incorrect', 'error')  
+            return redirect('/login')  
     return render_template('login.html')
 
 @app.route('/register', methods = ['POST', 'GET'])
@@ -39,7 +46,7 @@ def register():
             db.session.add(new_user)
             db.session.commit()
             session['username'] = username
-            return redirect('/blog')
+            return redirect('/newpost')
 
         else:
             return '<h1>Duplicate User</h1>'
@@ -52,12 +59,15 @@ def logout():
     return redirect('/login')
 
 @app.route('/blog', methods=['POST', 'GET'])
-def index():
-
-    owner = User.query.filter_by(username=session['username']).first()
-    blogs = Blog.query.filter_by(owner=owner).order_by(desc(Blog.pub_date)).all()
-    return render_template('blog.html',title="My Blogs", 
-        blogs=blogs, owner=owner)
+def blog():
+    owner = request.args.get('user')
+    if owner:
+        blogs = Blog.query.filter_by(owner_id=owner).order_by(desc(Blog.pub_date)).all()
+    else:
+        blogs = Blog.query.order_by(desc(Blog.pub_date)).all()
+    return render_template('blog.html',title="Blogs", owner=owner,
+        blogs=blogs)
+   
 
 
 @app.route('/newpost', methods=['POST', 'GET'])
@@ -84,7 +94,7 @@ def new_post():
 def view_entry():
     owner = User.query.filter_by(username =session['username']).first()
     id = request.args.get('blog')
-    blog = Blog.query.filter_by(owner=owner, id=id).first()
+    blog = Blog.query.filter_by(id=id).first()
     return render_template('entry.html', blog=blog, owner=owner)
 
 if __name__ == '__main__':
